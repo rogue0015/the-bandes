@@ -12,7 +12,7 @@ services:
     region: oregon
     dockerContext: .
     dockerfilePath: ./Dockerfile
-    healthCheckPath: /keepalive
+    healthCheckPath: /health
     envVars:
       - fromGroup: bandes-shared
       - key: APP_SECRET_KEY
