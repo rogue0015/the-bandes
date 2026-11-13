@@ -1,0 +1,100 @@
+envVarGroups:
+  - name: bandes-shared
+    envVars:
+      - key: INTERNAL_API_TOKEN
+        generateValue: true
+
+services:
+  - type: web
+    name: bandes-backend
+    runtime: docker
+    plan: free
+    region: oregon
+    dockerContext: .
+    dockerfilePath: ./backend/Dockerfile
+    healthCheckPath: /keepalive
+    envVarGroups:
+      - bandes-shared
+    envVars:
+      - key: APP_SECRET_KEY
+        generateValue: true
+      - key: APP_COOKIE_SECURE
+        value: "true"
+      - key: APP_TIMEZONE
+        value: Africa/Harare
+      - key: DATABASE_PATH
+        value: /data/bandes.db
+      - key: BOOTSTRAP_USER_1_EMAIL
+        value: brandonbande02@gmail.com
+      - key: BOOTSTRAP_USER_1_PASSWORD
+        sync: false
+      - key: BOOTSTRAP_USER_2_EMAIL
+        value: feliciachuma07@gmail.com
+      - key: BOOTSTRAP_USER_2_PASSWORD
+        sync: false
+      - key: SERVICE_ADMIN_EMAIL
+        value: brandonbande02@gmail.com
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: WHATSAPP_GROUP_NAME
+        value: The Bandeees
+      - key: WHATSAPP_CHANNEL_NAME
+        value: IT Opportunities Zim
+      - key: WHATSAPP_SERVICE_URL
+        value: https://bandes-whatsapp.onrender.com
+      - key: SCRAPER_SERVICE_URL
+        value: https://bandes-scraper.onrender.com
+      - key: WHATSAPP_FELI_PHONE
+        sync: false
+      - key: WHATSAPP_BRANDON_PHONE
+        sync: false
+
+  - type: web
+    name: bandes-whatsapp
+    runtime: docker
+    plan: free
+    region: oregon
+    dockerContext: .
+    dockerfilePath: ./WhatsApp/Dockerfile
+    healthCheckPath: /health
+    envVarGroups:
+      - bandes-shared
+    envVars:
+      - key: PORT
+        value: "10000"
+      - key: WHATSAPP_PORT
+        value: "10000"
+      - key: WHATSAPP_HOST
+        value: 0.0.0.0
+      - key: PUPPETEER_EXECUTABLE_PATH
+        value: /usr/bin/chromium
+      - key: PUPPETEER_SKIP_DOWNLOAD
+        value: "true"
+      - key: BACKEND_API_URL
+        value: https://bandes-backend.onrender.com
+      - key: WHATSAPP_AUTH_PATH
+        value: /app/WhatsApp/.wwebjs_auth
+      - key: WHATSAPP_QUEUE_FILE
+        value: /app/WhatsApp/pending-messages.json
+      - key: WHATSAPP_GROUP_NAME
+        value: The Bandeees
+      - key: WHATSAPP_CHANNEL_NAME
+        value: IT Opportunities Zim
+
+  - type: web
+    name: bandes-scraper
+    runtime: docker
+    plan: free
+    region: oregon
+    dockerContext: .
+    dockerfilePath: ./scraper_service/Dockerfile
+    healthCheckPath: /health
+    envVarGroups:
+      - bandes-shared
+    envVars:
+      - key: SCRAPER_API_URL
+        value: https://bandes-backend.onrender.com/api/internal/opportunities
+      - key: SCRAPER_INTERVAL_SECONDS
+        value: "21600"
+      - key: ENTREPRENEURSHIP_SOURCES
+        value: ""

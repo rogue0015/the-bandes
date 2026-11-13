@@ -1,0 +1,14 @@
+.env
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+backend/data/
+WhatsApp/.wwebjs_auth/
+WhatsApp/.wwebjs_cache/
+WhatsApp/pending-messages.json
+WhatsApp/pending-messages.json.tmp
+WhatsApp/pending-messages.json.*.corrupt
+WhatsApp/node_modules/
+scraper_service/.venv/
+.pytest_cache/

@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f5f7f8">
+    <title>Bandes Opportunities</title>
+    <link rel="stylesheet" href="/static/styles.css">
+  </head>
+  <body>
+    <main class="shell">
+      <section id="login-view" class="login-panel" aria-labelledby="login-title">
+        <div class="brand-mark" aria-hidden="true">B</div>
+        <p class="eyebrow">BANDES OPPORTUNITIES</p>
+        <h1 id="login-title">Welcome back</h1>
+        <p class="muted">Sign in to keep track of opportunities and deadlines.</p>
+        <form id="login-form">
+          <label for="email">Email address</label>
+          <input id="email" name="email" type="email" autocomplete="username" required>
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" required>
+          <button type="submit" class="primary-button">Sign in</button>
+          <p id="login-error" class="form-error" role="alert"></p>
+        </form>
+      </section>
+
+      <section id="dashboard-view" class="dashboard hidden" aria-labelledby="dashboard-title">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">BANDES OPPORTUNITIES</p>
+            <h1 id="dashboard-title">Your opportunity registry</h1>
+          </div>
+          <div class="account">
+            <span id="account-email"></span>
+            <button id="logout-button" class="quiet-button" type="button">Sign out</button>
+          </div>
+        </header>
+        <nav class="dashboard-tabs" role="tablist" aria-label="Dashboard sections">
+          <button id="tab-setup" class="dashboard-tab" type="button" role="tab" aria-selected="true" aria-controls="panel-setup" tabindex="0">Setup</button>
+          <button id="tab-data" class="dashboard-tab" type="button" role="tab" aria-selected="false" aria-controls="panel-data" tabindex="-1">Data received</button>
+          <button id="tab-settings" class="dashboard-tab" type="button" role="tab" aria-selected="false" aria-controls="panel-settings" tabindex="-1">Settings</button>
+        </nav>
+        <section id="panel-setup" class="tab-panel" role="tabpanel" aria-labelledby="tab-setup">
+        <section id="service-tools" class="service-tools hidden" aria-label="Service setup">
+          <article class="setup-card">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">WHATSAPP CONNECTION</p>
+                <h2>Link WhatsApp Web</h2>
+                <p class="muted">Start the connection when you are ready, then scan the QR code from WhatsApp on your phone.</p>
+                <p class="group-target">Listening in <strong id="whatsapp-target-group">The Bandeees</strong>. Each link is acknowledged immediately; pages are summarized or tracked as opportunities. Reply <strong>Applied</strong> or <strong>Done</strong> to a bot summary to close its pending reminders.</p>
+                <p class="group-target channel-target">Also monitoring <strong id="whatsapp-target-channel">IT Opportunities Zim</strong>. Channel images and PDFs are sent to Gemini for extraction. Recent-post tests do not send messages to the group.</p>
+              </div>
+              <button id="start-whatsapp-button" type="button" class="primary-button">Start WhatsApp Web</button>
+            </div>
+            <p id="whatsapp-state" class="service-state" role="status">Checking connection…</p>
+            <p id="whatsapp-error" class="form-error" role="alert"></p>
+            <div class="channel-test">
+              <button id="test-channel-button" type="button" class="site-scan" disabled>Test last 10 channel posts</button>
+              <p id="channel-test-result" class="channel-test-result" role="status"></p>
+            </div>
+            <div id="whatsapp-qr-panel" class="qr-panel hidden">
+              <img id="whatsapp-qr" alt="WhatsApp Web pairing QR code">
+              <p>On your phone, open WhatsApp → Linked devices → Link a device, then scan this code.</p>
+            </div>
+          </article>
+          <article class="setup-card">
+            <div>
+              <p class="eyebrow">OPPORTUNITY SOURCES</p>
+              <h2>Websites to scan</h2>
+              <p class="muted">Add public listing pages, then queue a scan whenever you like. New sites are also checked automatically.</p>
+            </div>
+            <form id="site-form" class="site-form">
+              <label for="site-name">Website name</label>
+              <input id="site-name" name="name" maxlength="120" placeholder="Opportunity board" required>
+              <label for="site-url">Listing page URL</label>
+              <input id="site-url" name="url" type="url" placeholder="https://example.org/opportunities" required>
+              <button type="submit" class="primary-button">Add website</button>
+              <p id="site-message" class="form-error" role="status"></p>
+            </form>
+            <div id="site-list" class="site-list"></div>
+          </article>
+        </section>
+        <p id="setup-restricted" class="setup-restricted hidden">WhatsApp and source setup are managed by the service administrator.</p>
+        </section>
+        <section id="panel-data" class="tab-panel hidden" role="tabpanel" aria-labelledby="tab-data" tabindex="0">
+        <section class="stats" aria-label="Opportunity totals">
+          <article class="stat-card"><span>Tracked records</span><strong id="total-count">0</strong></article>
+          <article class="stat-card"><span>Active</span><strong id="active-count">0</strong></article>
+          <article class="stat-card"><span>Upcoming deadlines</span><strong id="upcoming-count">0</strong></article>
+        </section>
+        <section class="registry">
+          <div class="registry-header">
+            <div>
+              <h2>Opportunities and article summaries</h2>
+              <p class="muted">Links from The Bandeees and matching website listings appear here.</p>
+            </div>
+            <label class="filter-label" for="status-filter">Show
+              <select id="status-filter">
+                <option value="">All statuses</option>
+                <option value="active">Active</option>
+                <option value="completed">Completed</option>
+                <option value="withdrawn">Withdrawn</option>
+                <option value="expired">Expired</option>
+              </select>
+            </label>
+          </div>
+          <p id="load-error" class="form-error" role="alert"></p>
+          <div id="opportunity-list" class="opportunity-list"></div>
+          <div id="empty-state" class="empty-state hidden">
+            <div class="empty-icon" aria-hidden="true">↗</div>
+            <h3>No records yet</h3>
+            <p>Article summaries and opportunities from The Bandeees or configured websites will appear here.</p>
+          </div>
+        </section>
+        <section class="registry reminder-registry" aria-labelledby="reminder-title">
+          <div class="registry-header">
+            <div>
+              <h2 id="reminder-title">Reminder schedule</h2>
+              <p class="muted">Upcoming 3-day and 1-day reminders. Completed opportunities are checked off automatically.</p>
+            </div>
+          </div>
+          <p id="reminder-error" class="form-error" role="alert"></p>
+          <div id="reminder-list" class="reminder-list"></div>
+          <p id="reminder-empty" class="empty-state hidden">No reminders are scheduled yet.</p>
+        </section>
+        </section>
+        <section id="panel-settings" class="tab-panel hidden" role="tabpanel" aria-labelledby="tab-settings" tabindex="0">
+          <article class="settings-card">
+            <p class="eyebrow">ACCOUNT</p>
+            <h2>Change password</h2>
+            <p class="muted">Use a password with at least 12 characters.</p>
+            <form id="change-password-form" class="change-password">
+              <label for="current-password">Current password</label>
+              <input id="current-password" name="current_password" type="password" autocomplete="current-password" required>
+              <label for="new-password">New password</label>
+              <input id="new-password" name="new_password" type="password" minlength="12" autocomplete="new-password" required>
+              <button type="submit" class="primary-button">Update password</button>
+              <p id="password-message" class="form-error" role="status"></p>
+            </form>
+          </article>
+        </section>
+      </section>
+    </main>
+    <script src="/static/app.js" defer></script>
+  </body>
+</html>

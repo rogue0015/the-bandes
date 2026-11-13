@@ -1,0 +1,73 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    env_file:
+      - .env
+    environment:
+      DATABASE_PATH: /data/bandes.db
+      WHATSAPP_SERVICE_URL: http://whatsapp:3100
+    ports:
+      - "127.0.0.1:8765:8000"
+    volumes:
+      - bandes_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  whatsapp:
+    build:
+      context: .
+      dockerfile: WhatsApp/Dockerfile
+    env_file:
+      - .env
+    environment:
+      BACKEND_API_URL: http://backend:8000
+      WHATSAPP_PORT: "3100"
+      PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium
+    volumes:
+      - ./WhatsApp/.wwebjs_auth:/app/WhatsApp/.wwebjs_auth
+      - ./WhatsApp/.wwebjs_cache:/app/WhatsApp/.wwebjs_cache
+      - whatsapp_queue:/data/whatsapp-queue
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3100/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 30s
+      timeout: 8s
+      retries: 3
+      start_period: 60s
+
+  scraper:
+    build:
+      context: .
+      dockerfile: scraper_service/Dockerfile
+    env_file:
+      - .env
+    environment:
+      SCRAPER_API_URL: http://backend:8000/api/internal/opportunities
+      CHROME_BIN: /usr/bin/chromium
+      CHROMEDRIVER_PATH: /usr/bin/chromedriver
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  bandes_data:
+  whatsapp_queue:
