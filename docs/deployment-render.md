@@ -5,6 +5,18 @@ adapter, and scraper as free web services for an experimental deployment.
 The scraper has a small health endpoint so it can run as a Render web service
 while continuing its independent background scan loop.
 
+To create only the dashboard/API as a standard Render **Web Service**, connect
+the repository and configure:
+
+- Root Directory: repository root (leave blank or use `.`)
+- Runtime: Docker
+- Dockerfile Path: `./Dockerfile`
+- Health Check Path: `/health`
+
+The root Dockerfile builds the backend and serves the frontend dashboard. The
+WhatsApp adapter and scraper still need their own services for the complete
+application; use the Blueprint to create all three.
+
 ## Deploy
 
 1. Push the project to a Git provider supported by Render and create a Blueprint

@@ -87,7 +87,11 @@ volumes; the WhatsApp browser session is kept in the ignored local
 
 ## Render deployment
 
-The root `render.yaml` Blueprint provides an experimental free-tier deployment.
+The root `Dockerfile` builds the FastAPI/dashboard Web Service when deploying
+the repository directly as a Render Web Service. Set the repository root as the
+service's Root Directory and use `/health` as its health-check path. The root
+`render.yaml` Blueprint provides an experimental free-tier deployment for all
+three services.
 See [Render deployment notes](docs/deployment-render.md) for setup, the
 five-minute `/keepalive` cron URL, and the limitations of ephemeral SQLite and
 WhatsApp session storage on free instances.
