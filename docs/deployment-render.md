@@ -5,6 +5,11 @@ adapter, and scraper as free web services for an experimental deployment.
 The scraper has a small health endpoint so it can run as a Render web service
 while continuing its independent background scan loop.
 
+The Blueprint names its dashboard/API service `feli-bot` to match the
+already-created Render Web Service in this workspace. The Blueprint also
+defines the WhatsApp and scraper companion services; the dashboard by itself
+does not run those processes.
+
 To create only the dashboard/API as a standard Render **Web Service**, connect
 the repository and configure:
 

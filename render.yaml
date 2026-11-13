@@ -6,16 +6,15 @@ envVarGroups:
 
 services:
   - type: web
-    name: bandes-backend
+    name: feli-bot
     runtime: docker
     plan: free
     region: oregon
     dockerContext: .
     dockerfilePath: ./Dockerfile
     healthCheckPath: /keepalive
-    envVarGroups:
-      - bandes-shared
     envVars:
+      - fromGroup: bandes-shared
       - key: APP_SECRET_KEY
         generateValue: true
       - key: APP_COOKIE_SECURE
@@ -57,9 +56,8 @@ services:
     dockerContext: .
     dockerfilePath: ./WhatsApp/Dockerfile
     healthCheckPath: /health
-    envVarGroups:
-      - bandes-shared
     envVars:
+      - fromGroup: bandes-shared
       - key: PORT
         value: "10000"
       - key: WHATSAPP_PORT
@@ -89,9 +87,8 @@ services:
     dockerContext: .
     dockerfilePath: ./scraper_service/Dockerfile
     healthCheckPath: /health
-    envVarGroups:
-      - bandes-shared
     envVars:
+      - fromGroup: bandes-shared
       - key: SCRAPER_API_URL
         value: https://bandes-backend.onrender.com/api/internal/opportunities
       - key: SCRAPER_INTERVAL_SECONDS
