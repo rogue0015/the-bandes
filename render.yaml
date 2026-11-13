@@ -69,7 +69,7 @@ services:
       - key: PUPPETEER_SKIP_DOWNLOAD
         value: "true"
       - key: BACKEND_API_URL
-        value: https://bandes-backend.onrender.com
+        value: https://feli-bot.onrender.com
       - key: WHATSAPP_AUTH_PATH
         value: /app/WhatsApp/.wwebjs_auth
       - key: WHATSAPP_QUEUE_FILE
@@ -90,7 +90,7 @@ services:
     envVars:
       - fromGroup: bandes-shared
       - key: SCRAPER_API_URL
-        value: https://bandes-backend.onrender.com/api/internal/opportunities
+        value: https://feli-bot.onrender.com/api/internal/opportunities
       - key: SCRAPER_INTERVAL_SECONDS
         value: "21600"
       - key: ENTREPRENEURSHIP_SOURCES

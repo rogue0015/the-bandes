@@ -33,7 +33,7 @@ application; use the Blueprint to create all three.
    also the dashboard URL. Sign in, start WhatsApp from the dashboard, and scan
    the QR code when asked.
 4. Configure the external five-minute cron to make a `GET` request to
-   `https://bandes-backend.onrender.com/keepalive`. The endpoint returns only
+   `https://feli-bot.onrender.com/keepalive`. The endpoint returns only
    `{"status":"ok"}` and also makes best-effort health requests to the WhatsApp
    and scraper services, so one cron target keeps all three free services
    active.
