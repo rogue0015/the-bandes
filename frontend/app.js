@@ -86,6 +86,9 @@ async function showDashboard(user) {
   }, 30000);
   if (user.can_manage_services) {
     await Promise.all([refreshWhatsAppStatus(), loadSites()]);
+    if (!whatsappPoll) {
+      whatsappPoll = setInterval(refreshWhatsAppStatus, 5000);
+    }
   }
 }
 
@@ -263,17 +266,6 @@ function updateWhatsAppState(data) {
   startWhatsAppButton.disabled = ["starting", "qr", "connecting", "connected", "reconnecting"].includes(data.state);
   testChannelButton.disabled = data.state !== "connected" || data.target_channel_found !== true;
   startWhatsAppButton.textContent = data.state === "connected" ? "WhatsApp is connected" : "Start WhatsApp Web";
-  if (
-    data.state === "connected"
-    && data.target_group_found !== null
-    && data.target_group_found !== undefined
-    && data.target_channel_found !== null
-    && data.target_channel_found !== undefined
-    && whatsappPoll
-  ) {
-    clearInterval(whatsappPoll);
-    whatsappPoll = null;
-  }
 }
 
 async function refreshWhatsAppStatus() {
@@ -282,6 +274,7 @@ async function refreshWhatsAppStatus() {
   } catch (error) {
     whatsappState.textContent = "WhatsApp service is not available.";
     document.querySelector("#whatsapp-error").textContent = error.message;
+    whatsappQrPanel.classList.add("hidden");
     startWhatsAppButton.disabled = false;
   }
 }
@@ -293,7 +286,7 @@ startWhatsAppButton.addEventListener("click", async () => {
   try {
     updateWhatsAppState(await api("/api/whatsapp/start", { method: "POST" }));
     if (!whatsappPoll) {
-      whatsappPoll = setInterval(refreshWhatsAppStatus, 2000);
+      whatsappPoll = setInterval(refreshWhatsAppStatus, 5000);
     }
     await refreshWhatsAppStatus();
   } catch (error) {

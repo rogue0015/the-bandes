@@ -79,6 +79,8 @@ client.on("qr", (qr) => {
   targetGroupFound = null;
   targetChannelFound = null;
   state = "qr";
+  qrDataUrl = null;
+  lastError = null;
   QRCode.toDataURL(qr, { errorCorrectionLevel: "M", width: 320, margin: 2 })
     .then((dataUrl) => {
       qrDataUrl = dataUrl;
@@ -141,10 +143,15 @@ client.on("disconnected", (reason) => {
   ready = false;
   targetGroupFound = null;
   targetChannelFound = null;
-  state = "disconnected";
   qrDataUrl = null;
   lastError = "WhatsApp disconnected";
   console.error(lastError, reason);
+  if (reason === "LOGOUT") {
+    state = "reconnecting";
+    lastError = "WhatsApp logged out; waiting for a new pairing QR";
+    return;
+  }
+  state = "disconnected";
   scheduleReconnect();
 });
 
