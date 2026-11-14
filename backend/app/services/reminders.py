@@ -7,6 +7,7 @@ import requests
 
 from ..config import settings
 from ..database import connection
+from .greetings import schedule_daily_greetings
 from .notifications import process_pending_notifications
 from .opportunities import get_opportunity, format_summary
 from .whatsapp import send_message
@@ -137,6 +138,7 @@ def process_due_reminders() -> None:
 async def reminder_loop(stop_event: asyncio.Event) -> None:
     while not stop_event.is_set():
         try:
+            await asyncio.to_thread(schedule_daily_greetings)
             await asyncio.to_thread(process_pending_notifications)
             await asyncio.to_thread(process_due_reminders)
         except Exception:

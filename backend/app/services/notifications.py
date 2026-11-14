@@ -26,10 +26,14 @@ def enqueue_notification(
     recipients: list[str] | None = None,
     *,
     broadcast: bool = False,
+    scheduled_at: datetime | None = None,
 ) -> None:
-    now = datetime.now(timezone.utc).isoformat()
+    now = datetime.now(timezone.utc)
     if broadcast and recipients:
         raise ValueError("A group broadcast cannot also specify recipients")
+    if scheduled_at is not None and scheduled_at.tzinfo is None:
+        raise ValueError("A scheduled notification time must be timezone-aware")
+    due_at = scheduled_at.astimezone(timezone.utc) if scheduled_at else now
     normalized_recipients = _normalize_recipients(recipients or [])
     status = "pending" if normalized_recipients or broadcast else "skipped"
     last_error = (
@@ -51,8 +55,8 @@ def enqueue_notification(
                 json.dumps(normalized_recipients),
                 int(broadcast),
                 status,
-                now,
-                now,
+                due_at.isoformat(),
+                now.isoformat(),
                 last_error,
             ),
         )

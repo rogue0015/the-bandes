@@ -12,6 +12,7 @@ from app.routers import internal
 from app.schemas import WhatsAppChannelPost, WhatsAppInbound, WhatsAppMediaAttachment
 from app.services import notifications
 from app.services import extractor
+from app.services import greetings
 from app.services import reminders
 from app.services.opportunities import (
     _schedule_reminders,
@@ -510,3 +511,131 @@ def test_filters_expired_and_unrelated_entrepreneurship_listings():
     assert is_current(current)
     assert matches_entrepreneurship({"title": "Innovation fellowship", "summary": "For leaders"})
     assert not matches_entrepreneurship({"title": "Office administrator", "summary": "Full-time role"})
+
+
+def test_detail_link_candidates_prioritize_application_links():
+    html = (
+        '<a href="/about">About us</a>'
+        '<a href="/fellowship/apply">Apply for this fellowship</a>'
+        '<a href="mailto:info@example.org">Email us</a>'
+    )
+    candidates = extractor._detail_link_candidates(html, "https://example.org/fellowship")
+    assert candidates[0] == "https://example.org/fellowship/apply"
+    assert all(not candidate.startswith("mailto:") for candidate in candidates)
+
+
+def test_find_deadline_follows_detail_links_until_found(monkeypatch):
+    base = "https://example.org/fellowship"
+    detail = "https://example.org/fellowship/apply"
+    html = '<a href="/fellowship/apply">How to apply</a>'
+    calls = []
+
+    def fake_fetch(url):
+        assert url == detail
+        return detail, "<p>The application deadline is 2030-01-01.</p>"
+
+    def fake_gemini(url, _html, media=None):
+        calls.append(url)
+        return {
+            "url": url,
+            "title": "Innovation Fellowship",
+            "summary": "Description: funding. Requirements: early-career. Deadline: 01 Jan 2030.",
+            "record_type": "opportunity",
+            "category": "fellowship",
+            "deadline": datetime(2030, 1, 1, 23, 59, tzinfo=timezone.utc),
+            "source": "group",
+        }
+
+    monkeypatch.setattr(extractor, "_fetch_page", fake_fetch)
+    monkeypatch.setattr(extractor, "_gemini_extract", fake_gemini)
+
+    result = extractor._find_deadline(
+        {"url": base, "record_type": "opportunity", "deadline": None, "summary": "thin"},
+        base,
+        html,
+    )
+
+    assert result["deadline"] == datetime(2030, 1, 1, 23, 59, tzinfo=timezone.utc)
+    assert "Requirements:" in result["summary"]
+    assert result["url"] == base
+    assert calls == [detail]
+
+
+def test_find_deadline_does_not_follow_when_deadline_known(monkeypatch):
+    def fail_fetch(_url):
+        raise AssertionError("A detail page must not be fetched when a deadline is present")
+
+    monkeypatch.setattr(extractor, "_fetch_page", fail_fetch)
+    result = {
+        "url": "https://example.org/fellowship",
+        "record_type": "opportunity",
+        "deadline": datetime(2030, 1, 1, 23, 59, tzinfo=timezone.utc),
+    }
+    assert (
+        extractor._find_deadline(result, "https://example.org/fellowship", "<a href='/apply'>apply</a>")
+        is result
+    )
+
+
+def test_daily_greetings_schedule_remaining_messages_for_feli(monkeypatch):
+    captured = []
+
+    class FrozenDateTime(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return datetime(2026, 11, 14, 8, 0, tzinfo=tz)
+
+    monkeypatch.setattr(greetings, "datetime", FrozenDateTime)
+    monkeypatch.setattr(greetings.settings, "whatsapp_feli_phone", "+263 77 123 4567")
+    monkeypatch.setattr(
+        greetings,
+        "enqueue_notification",
+        lambda key, text, recipients, **kwargs: captured.append(
+            (key, text, recipients, kwargs.get("scheduled_at"))
+        ),
+    )
+
+    greetings.schedule_daily_greetings()
+
+    assert [item[0] for item in captured] == [
+        "greeting:afternoon:2026-11-14",
+        "greeting:night:2026-11-14",
+    ]
+    assert captured[0][1] == "Good afternoon my Queen Feli"
+    assert captured[0][2] == ["263771234567"]
+    assert captured[0][3].hour == 13
+    assert captured[1][1] == "Good night my Queen Feli"
+    assert captured[1][3].hour == 21
+
+
+def test_daily_greetings_skip_without_feli_phone(monkeypatch):
+    captured = []
+    monkeypatch.setattr(greetings.settings, "whatsapp_feli_phone", "")
+    monkeypatch.setattr(
+        greetings, "enqueue_notification", lambda *args, **kwargs: captured.append(args)
+    )
+
+    greetings.schedule_daily_greetings()
+
+    assert captured == []
+
+
+def test_scheduled_notification_is_held_until_due(monkeypatch, tmp_path):
+    monkeypatch.setattr(database.settings.__class__, "database_path", tmp_path / "bandes.db")
+    database.initialize_database()
+    when = datetime.now(timezone.utc) + timedelta(hours=3)
+
+    notifications.enqueue_notification(
+        "greeting:morning:2026-11-14",
+        "Good morning my Queen Feli",
+        ["263771234567"],
+        scheduled_at=when,
+    )
+
+    with database.connection() as conn:
+        row = conn.execute(
+            "SELECT scheduled_at, status FROM notification_outbox"
+        ).fetchone()
+    assert datetime.fromisoformat(row["scheduled_at"]) == when
+    assert row["status"] == "pending"
+    assert notifications._claim_pending() == []
